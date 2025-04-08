@@ -17,22 +17,36 @@
         header {
             background-color: #005a9c;
             color: white;
-            padding: 20px;
+            padding: 40px 0;
             position: relative;
+            overflow: hidden;
         }
 
         header img {
             position: absolute;
             top: 20px;
             left: 20px;
-            max-width: 100px;
+            max-width: 150px; /* Größeres Logo */
             height: auto;
         }
 
         header h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             text-align: center;
             margin-top: 0;
+            color: white;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: white;
+            transform: skewY(-10deg);
+            transform-origin: bottom left;
         }
 
         .search-container {
@@ -130,21 +144,37 @@
 
     async function searchDeparture() {
         const station = document.getElementById('station').value;
+        console.log("Suchanfrage für Station:", station); // Debugging-Ausgabe
 
-        // Anfrage an die Deutsche Bahn API
-        const response = await fetch(`https://api.deutschebahn.com/freeplan/v1/departureBoard?station=${encodeURIComponent(station)}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}` // Hier fügst du deinen API-Schlüssel ein
+        if (!station) {
+            alert("Bitte gib eine Station ein.");
+            return;
+        }
+
+        try {
+            // Anfrage an die Deutsche Bahn API
+            const response = await fetch(`https://api.deutschebahn.com/freeplan/v1/departureBoard?station=${encodeURIComponent(station)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}` // Hier fügst du deinen API-Schlüssel ein
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Fehler bei der API-Anfrage: ${response.statusText}`);
             }
-        });
 
-        const data = await response.json();
+            const data = await response.json();
+            console.log("API Antwort:", data); // Debugging-Ausgabe
 
-        if (data && data.length > 0) {
-            displayResults(data);
-        } else {
-            alert("Keine Abfahrtszeiten gefunden.");
+            if (data && data.length > 0) {
+                displayResults(data);
+            } else {
+                alert("Keine Abfahrtszeiten gefunden.");
+            }
+        } catch (error) {
+            console.error("Fehler bei der API-Abfrage:", error);
+            alert("Es gab ein Problem bei der Abfrage. Bitte versuche es später noch einmal.");
         }
     }
 
