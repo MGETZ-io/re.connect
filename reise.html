@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dein.Fahrplan - re:connect</title>
-    
-    <!-- Favicon -->
     <link rel="icon" href="logo_re:connect.png" type="image/png">
-    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,31 +15,29 @@
         }
 
         header {
-            background-color: #005a9c; /* Corporate Color */
+            background-color: #005a9c;
             color: white;
             padding: 20px;
-            text-align: center;
+            position: relative;
         }
 
         header img {
-            max-width: 150px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            max-width: 100px;
             height: auto;
-            margin-bottom: 10px;
         }
 
         header h1 {
             font-size: 2rem;
-            margin: 0;
+            text-align: center;
+            margin-top: 0;
         }
 
         .search-container {
             padding: 40px;
             text-align: center;
-        }
-
-        .search-container h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
         }
 
         .search-form {
@@ -60,9 +55,7 @@
             font-size: 1.2rem;
         }
 
-        .search-form input,
-        .search-form select,
-        .search-form button {
+        .search-form input, .search-form button {
             padding: 12px;
             width: 100%;
             box-sizing: border-box;
@@ -96,28 +89,14 @@
             margin-bottom: 15px;
         }
 
-        .result-container p {
+        .result-container ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .result-container li {
             font-size: 1rem;
-        }
-
-        /* Mitarbeiter-Login */
-        .login-container {
-            margin-top: 50px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .login-container a {
-            text-decoration: none;
-            background-color: #005a9c;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1.2rem;
-        }
-
-        .login-container a:hover {
-            background-color: #004080;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -133,97 +112,54 @@
     <h2>Fahrplanauskunft</h2>
 
     <div class="search-form">
-        <label for="start">Startort (Stadt oder Adresse):</label>
-        <input type="text" id="start" placeholder="Beispiel: Berlin" required>
+        <label for="station">Station:</label>
+        <input type="text" id="station" placeholder="Beispiel: Berlin Hbf" required>
 
-        <label for="ziel">Zielort (Stadt oder Adresse):</label>
-        <input type="text" id="ziel" placeholder="Beispiel: München" required>
-
-        <label for="datum">Reisedatum:</label>
-        <input type="date" id="datum" required>
-
-        <label for="zeit">Abfahrtszeit:</label>
-        <input type="time" id="zeit" required>
-
-        <button onclick="searchFahrplan()">Fahrplan suchen</button>
+        <button onclick="searchDeparture()">Abfahrtszeiten anzeigen</button>
     </div>
 
     <!-- Ergebnisbereich -->
     <div id="result-container" class="result-container" style="display: none;">
-        <h3>Gefundene Verbindungen:</h3>
+        <h3>Abfahrtszeiten:</h3>
         <ul id="result"></ul>
     </div>
 </div>
 
-<!-- Mitarbeiter-Login -->
-<div class="login-container">
-    <a href="546234.html">Mitarbeiter Login</a>
-</div>
-
 <script>
-    async function searchFahrplan() {
-        const start = document.getElementById('start').value;
-        const ziel = document.getElementById('ziel').value;
-        const datum = document.getElementById('datum').value;
-        const zeit = document.getElementById('zeit').value;
+    const apiKey = 'a94bf1c1363d83c7cff3a7678fc24560'; // Dein API-Schlüssel hier
 
-        const startGeo = await getGeoCoordinates(start);
-        const zielGeo = await getGeoCoordinates(ziel);
+    async function searchDeparture() {
+        const station = document.getElementById('station').value;
 
-        if (!startGeo || !zielGeo) {
-            alert("Fehler bei der Geokodierung. Bitte prüfe die Eingaben.");
-            return;
-        }
-
-        const result = await fetchFahrplan(startGeo, zielGeo, datum, zeit);
-
-        if (result && result.length > 0) {
-            displayResults(result);
-        } else {
-            alert("Keine Verbindungen gefunden.");
-        }
-    }
-
-    async function getGeoCoordinates(address) {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&addressdetails=1`);
-        const data = await response.json();
-        if (data.length === 0) return null;
-        return {
-            lat: data[0].lat,
-            lon: data[0].lon
-        };
-    }
-
-    async function fetchFahrplan(startGeo, zielGeo, datum, zeit) {
-        const otpUrl = `https://api.opentripplanner.org/otp/routers/default/plan?fromPlace=${startGeo.lat},${startGeo.lon}&toPlace=${zielGeo.lat},${zielGeo.lon}&dateTime=${datum}T${zeit}:00&mode=TRANSIT&maxWalkDistance=1000&arriveBy=false`;
-
-        const response = await fetch(otpUrl);
-        const data = await response.json();
-
-        if (!data.plan || !data.plan.itineraries) return [];
-
-        return data.plan.itineraries.map(itinerary => {
-            return {
-                duration: itinerary.duration,
-                startTime: itinerary.startTime,
-                endTime: itinerary.endTime,
-                legs: itinerary.legs.map(leg => leg.mode).join(", ")
-            };
+        // Anfrage an die Deutsche Bahn API
+        const response = await fetch(`https://api.deutschebahn.com/freeplan/v1/departureBoard?station=${encodeURIComponent(station)}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}` // Hier fügst du deinen API-Schlüssel ein
+            }
         });
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            displayResults(data);
+        } else {
+            alert("Keine Abfahrtszeiten gefunden.");
+        }
     }
 
-    function displayResults(results) {
+    function displayResults(data) {
         const resultContainer = document.getElementById('result-container');
         const resultText = document.getElementById('result');
 
         resultText.innerHTML = '';
-        results.forEach(result => {
+        data.forEach(item => {
             const listItem = document.createElement('li');
-            listItem.textContent = `Dauer: ${result.duration / 60} Minuten, Abfahrt: ${result.startTime}, Ankunft: ${result.endTime}, Verkehrsmittel: ${result.legs}`;
+            listItem.textContent = `Zug: ${item.train.name}, Abfahrt: ${item.departureTime}, Ziel: ${item.to}`;
             resultText.appendChild(listItem);
         });
 
-        resultContainer.style.display = 'block'; // Sichtbar machen
+        resultContainer.style.display = 'block';
     }
 </script>
 
