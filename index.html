@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dein.Fahrplan - re:connect</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="logo_re:connect.png" type="image/png">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        header {
+            background-color: #005a9c; /* Corporate Color */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .main-content {
+            padding: 40px;
+            text-align: center;
+            opacity: 0; /* Initially hidden for scroll effect */
+            transition: opacity 1s ease-in-out;
+        }
+
+        .main-content.show {
+            opacity: 1; /* Make it visible when it is scrolled into view */
+        }
+
+        .main-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .question-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .question-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .question-box p {
+            margin: 10px 0;
+        }
+
+        .question-box .solution {
+            font-weight: bold;
+            color: #005a9c;
+        }
+
+        .login-container {
+            margin-top: 50px;
+            padding: 20px;
+        }
+
+        .login-container a {
+            text-decoration: none;
+            background-color: #005a9c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+        }
+
+        .login-container a:hover {
+            background-color: #004080;
+        }
+
+        /* Newsletter */
+        .newsletter-container {
+            background-color: #005a9c;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .newsletter-container h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .newsletter-container input[type="email"] {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            font-size: 1rem;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .newsletter-container button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            background-color: #ff8c00;
+            color: white;
+            border: none;
+        }
+
+        .newsletter-container button:hover {
+            background-color: #e67e00;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="logo_re:connect.png" alt="re:connect Logo">
+    <h1>Dein.Fahrplan</h1>
+    <p>Die Fahrplanauskunft für ganz Deutschland</p>
+</header>
+
+<div class="main-content">
+    <h2>Willkommen bei re:connect!</h2>
+
+    <div class="question-box">
+        <p><strong>Frage:</strong> Wie finde ich schnell den besten Fahrplan?</p>
+        <p><span class="solution">Antwort:</span> Mit <strong>re:connect</strong> ist es ganz einfach! Gib einfach deinen Start- und Zielort ein, wähle das gewünschte Datum, und wir zeigen dir die besten Verbindungen.</p>
+    </div>
+
+    <div class="question-box">
+        <p><strong>Frage:</strong> Wie funktioniert die App?</p>
+        <p><span class="solution">Antwort:</span> Unsere App nutzt die neuesten Verkehrsdaten, um dir Echtzeit-Fahrpläne und Verbindungen für den gesamten Nah- und Fernverkehr anzubieten.</p>
+    </div>
+
+    <div class="question-box">
+        <p><strong>Frage:</strong> Wie kann ich die App nutzen?</p>
+        <p><span class="solution">Antwort:</span> Lade einfach die re:connect-App auf deinem Smartphone oder nutze die Web-Version, um jederzeit und überall schnell die besten Fahrpläne zu finden.</p>
+    </div>
+</div>
+
+<!-- Mitarbeiter-Login -->
+<div class="login-container">
+    <a href="546234.html">Mitarbeiter Login</a>
+</div>
+
+<!-- Newsletter -->
+<div class="newsletter-container">
+    <h3>Abonniere unseren Newsletter für Gratis-Boni!</h3>
+    <p>Verpasse keine Angebote und Updates von re:connect.</p>
+    <input type="email" placeholder="Deine E-Mail-Adresse">
+    <button>Abonnieren</button>
+</div>
+
+<script>
+    // Function to show content when scrolling
+    window.addEventListener('scroll', function() {
+        const questions = document.querySelectorAll('.question-box');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Show main content when scrolled into view
+        if (window.scrollY > 100) {
+            mainContent.classList.add('show');
+        }
+
+        // Show individual questions when scrolled into view
+        questions.forEach(function(question) {
+            const rect = question.getBoundingClientRect();
+            if (rect.top <= window.innerHeight) {
+                question.classList.add('visible');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
