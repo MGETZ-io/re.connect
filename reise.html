@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dein.Fahrplan - re:connect</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="logo_re:connect.png" type="image/png">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        header {
+            background-color: #005a9c; /* Corporate Color */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .search-container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .search-container h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .search-form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-form label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .search-form input,
+        .search-form select,
+        .search-form button {
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .search-form button {
+            background-color: #005a9c;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .search-form button:hover {
+            background-color: #004080;
+        }
+
+        .result-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .result-container h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .result-container p {
+            font-size: 1rem;
+        }
+
+        /* Mitarbeiter-Login */
+        .login-container {
+            margin-top: 50px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .login-container a {
+            text-decoration: none;
+            background-color: #005a9c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+        }
+
+        .login-container a:hover {
+            background-color: #004080;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="logo_re:connect.png" alt="re:connect Logo">
+    <h1>Dein.Fahrplan</h1>
+    <p>Die Fahrplanauskunft für ganz Deutschland</p>
+</header>
+
+<div class="search-container">
+    <h2>Fahrplanauskunft</h2>
+
+    <div class="search-form">
+        <label for="start">Startort (Stadt oder Adresse):</label>
+        <input type="text" id="start" placeholder="Beispiel: Berlin" required>
+
+        <label for="ziel">Zielort (Stadt oder Adresse):</label>
+        <input type="text" id="ziel" placeholder="Beispiel: München" required>
+
+        <label for="datum">Reisedatum:</label>
+        <input type="date" id="datum" required>
+
+        <label for="zeit">Abfahrtszeit:</label>
+        <input type="time" id="zeit" required>
+
+        <button onclick="searchFahrplan()">Fahrplan suchen</button>
+    </div>
+
+    <!-- Ergebnisbereich -->
+    <div id="result-container" class="result-container" style="display: none;">
+        <h3>Gefundene Verbindungen:</h3>
+        <ul id="result"></ul>
+    </div>
+</div>
+
+<!-- Mitarbeiter-Login -->
+<div class="login-container">
+    <a href="546234.html">Mitarbeiter Login</a>
+</div>
+
+<script>
+    async function searchFahrplan() {
+        const start = document.getElementById('start').value;
+        const ziel = document.getElementById('ziel').value;
+        const datum = document.getElementById('datum').value;
+        const zeit = document.getElementById('zeit').value;
+
+        const startGeo = await getGeoCoordinates(start);
+        const zielGeo = await getGeoCoordinates(ziel);
+
+        if (!startGeo || !zielGeo) {
+            alert("Fehler bei der Geokodierung. Bitte prüfe die Eingaben.");
+            return;
+        }
+
+        const result = await fetchFahrplan(startGeo, zielGeo, datum, zeit);
+
+        if (result && result.length > 0) {
+            displayResults(result);
+        } else {
+            alert("Keine Verbindungen gefunden.");
+        }
+    }
+
+    async function getGeoCoordinates(address) {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&addressdetails=1`);
+        const data = await response.json();
+        if (data.length === 0) return null;
+        return {
+            lat: data[0].lat,
+            lon: data[0].lon
+        };
+    }
+
+    async function fetchFahrplan(startGeo, zielGeo, datum, zeit) {
+        const otpUrl = `https://api.opentripplanner.org/otp/routers/default/plan?fromPlace=${startGeo.lat},${startGeo.lon}&toPlace=${zielGeo.lat},${zielGeo.lon}&dateTime=${datum}T${zeit}:00&mode=TRANSIT&maxWalkDistance=1000&arriveBy=false`;
+
+        const response = await fetch(otpUrl);
+        const data = await response.json();
+
+        if (!data.plan || !data.plan.itineraries) return [];
+
+        return data.plan.itineraries.map(itinerary => {
+            return {
+                duration: itinerary.duration,
+                startTime: itinerary.startTime,
+                endTime: itinerary.endTime,
+                legs: itinerary.legs.map(leg => leg.mode).join(", ")
+            };
+        });
+    }
+
+    function displayResults(results) {
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result');
+
+        resultText.innerHTML = '';
+        results.forEach(result => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `Dauer: ${result.duration / 60} Minuten, Abfahrt: ${result.startTime}, Ankunft: ${result.endTime}, Verkehrsmittel: ${result.legs}`;
+            resultText.appendChild(listItem);
+        });
+
+        resultContainer.style.display = 'block'; // Sichtbar machen
+    }
+</script>
+
+</body>
+</html>
